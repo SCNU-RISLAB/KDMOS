@@ -1,0 +1,56 @@
+# Config format schema number
+format_version: 4
+
+###################
+## Model options
+model_params:
+  grid_size:
+    - 480
+    - 360
+    - 32
+
+  fea_dim: 9
+  ppmodel_init_dim: 32
+  use_norm: True
+  dropout: 0.5  # 0.2
+
+  use_co_attention: True  # use co-attention gate
+
+
+###################
+## Data_loader options
+data_loader:
+  data_path: "/data3/zlf_data/kitti/dataset"
+  return_ref: True  # reflectivity(intensity)
+  residual: 8  # residual 1-8, 0 for none
+  residual_path: "/data3/zlf_data/kitti/dataset/sequences"
+  teacher_logits_path: "/data3/ccy/data/"
+  batch_size: 8
+  shuffle: True   
+  drop_few_static_frames: True  
+  num_workers: 4  # Set to four times the number of available GPUs
+
+  dataset_type: "polar"
+  ignore_label: 255
+  fixed_volume_space: True
+
+  rotate_aug: True
+  flip_aug: True
+  transform_aug: True
+
+
+###################
+## Train params
+train_params:
+  name: "KDMOS"
+  model_load_path: "/data3/ccy/offline_weight_kd_bev/model_save_dir/val79.4/MotionBEV_best_voxel_miou.pt"
+  checkpoint_every_n_steps: 500
+  max_num_epochs: 150
+  eval_every_n_steps: 1048  #1411 #1048
+  learning_rate: 0.01
+  optimizer: "SGD" # "SGD" "Adam" "AdamW"
+  weight_decay: 0.0001   # weight decay
+  momentum: 0.9          # sgd momentum
+  wup_epochs: 1          # warmup during first XX epochs (can be float)
+  lr_decay: 0.99         # learning rate decay per epoch after initial cycle (from min lr)
+  start_valid_epoch: 30
