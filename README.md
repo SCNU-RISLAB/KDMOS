@@ -13,8 +13,7 @@ KDMOS
 
 
 ## 📖How to use
-### 📦pretrained model
-Our pretrained model (best in validation, with the IoU of **_76.12%_**) can be downloaded from [Google Drive](https://drive.google.com/file/d/1KGPwMr9v9GWdIB0zEGAJ8Wi0k3dvXbZt/view?usp=sharing).
+
 ### 📚Dataset 
 Download SemanticKITTI dataset from [SemanticKITTI](http://www.semantic-kitti.org/dataset.html#download) (including **Velodyne point clouds**, **calibration data** and **label data**).Extract everything into the same folder. 
 Data file structure should look like this:
