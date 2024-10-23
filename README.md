@@ -4,7 +4,7 @@ KDMOS:Knowledge Distillation for Motion Segmentation
 
 
 <p align="center">
-<img src="./assets/overview.jpg" width="90%">
+<img src="./assets/overview.png" width="90%">
 </p>
 <b><p align="center" style="margin-top: -20px;">
 KDMOS
