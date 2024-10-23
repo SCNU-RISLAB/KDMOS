@@ -1,4 +1,4 @@
-KDMOS:Knowledge Distillation for Motion Segmentation
+# KDMOS:Knowledge Distillation for Motion Segmentation
 
 
 
@@ -100,7 +100,7 @@ Specify params in [KDMOS-semantickitti.yaml](config/KDMOS-semantickitti.yaml)
 ```shell
 data_path: "your_path/path_to_KITTI"
 residual_path: "your_path/mos/residual-polar-sequential-480-360/" #"/media/ubuntu/4T/KITTI/mos/residual-polar-sequential-480-360"
-model_load_path: "pretain/MotionBEV-kitti-val-76.54.pt"
+model_load_path: "pretain/KDMOS-val-79.4.pt"
 ```
 
 Run
