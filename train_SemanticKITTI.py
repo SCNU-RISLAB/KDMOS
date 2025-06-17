@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Developed by Jiapeng Xie
+
 import os
 import time
 import torch.nn.functional as F
@@ -19,6 +19,7 @@ from utils import lovasz_losses
 from utils.log_util import get_logger, make_log_dir
 from config.config import load_config_data
 from utils.warmupLR import warmupLR
+import kd_Utils as kd
 # ignore weird np warning
 import warnings
 
@@ -92,7 +93,7 @@ def main(arch_config, data_config):
     fea_compre = model_cfg['grid_size'][2]
 
     # torch.cuda.set_device(1)s
-    pytorch_device = torch.device("cuda:0" )
+    pytorch_device = torch.device("cuda:3" )
     print("Training in device: ", pytorch_device)
 
     ignore_label = data_cfg['ignore_label']
@@ -250,7 +251,7 @@ def main(arch_config, data_config):
         pbar = tqdm(total=len(train_dataset_loader))
         for i_iter, (train_vox_label, train_grid, train_pt_labs, train_pt_fea, indexlist) in enumerate(train_dataset_loader):
             # validation
-            if global_iter % train_cfg['eval_every_n_steps'] == 0 and global_iter != 0 and epoch > train_cfg['start_valid_epoch']:
+            if global_iter % train_cfg['eval_every_n_steps'] == 0 and global_iter != 0 and epoch>train_cfg['start_valid_epoch']:
                 my_model.eval()
                 voxel_hist_list = []
                 val_loss_list = []
@@ -339,15 +340,45 @@ def main(arch_config, data_config):
                 weight_label = loss_weight[train_pt_labs]
 
                 loss_weight = weight_label.view(-1, 1)
-                kl_loss = softloss(F.log_softmax(pt_out / 4 , dim=1),
-                                   F.softmax(teacher_pred /4, dim=1)
-                                   )
-                kl_loss = kl_loss * loss_weight
-                kl_loss = kl_loss.sum() / loss_weight.sum()
+                mask = (loss_weight == 421.3364).float()
+                num_ones = mask.sum().item()
+                # pt_out = normali  ze(pt_out)
+                # teacher_pred = normalize(teacher_pred)
+                # nckdloss
+                # pt_out = normalize(pt_out)
+                # teacher_pred = normalize(teacher_pred)
+                gt_mask = kd._get_gt_mask(pt_out, train_pt_labs)
+                other_mask = kd._get_other_mask(pt_out, train_pt_labs)
+                pred_teacher_part2 = F.softmax(teacher_pred / 4 - 1000.0 * gt_mask, dim=1)
+                log_pred_student_part2 = F.log_softmax(pt_out / 4 - 1000.0 * gt_mask, dim=1)+1e-8
+                nckd_loss = (
+                        F.kl_div(log_pred_student_part2, pred_teacher_part2+1e-8, reduction="none")
+                )
+                nckd_loss = nckd_loss * loss_weight
+                #nckd_loss = nckd_loss.sum(dim=-1)  
 
-                loss +=0.5*kl_loss
+                #nckd_loss = nckd_loss.mean()  
 
+                nckd_loss = nckd_loss.sum() / loss_weight.sum()
 
+                pred_student = F.softmax(pt_out / 4, dim=1) + 1e-8
+                pred_teacher = F.softmax(teacher_pred / 4, dim=1) + 1e-8
+
+                pred_student = kd.cat_mask(pred_student, gt_mask, other_mask)
+                pred_teacher = kd.cat_mask(pred_teacher, gt_mask, other_mask)
+                log_pred_student = torch.log(pred_student)
+                tckd_loss = (
+                    F.kl_div(log_pred_student, pred_teacher, reduction="none")
+                )
+
+                # tckd_loss = tckd_loss.sum() /train_pt_labs.shape[0]
+                tckd_loss = tckd_loss * mask
+                tckd_loss = tckd_loss.sum() / num_ones
+            
+
+                kd_loss = 3*nckd_loss + tckd_loss
+
+                loss =loss+0.3*kd_loss
                 t2 = time.time()
                 loss.backward()
                 loss_list.append(loss.item())
