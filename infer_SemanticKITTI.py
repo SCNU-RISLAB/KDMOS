@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Developed by Jiapeng Xie
 import os
 import time
 import numpy as np
