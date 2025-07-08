@@ -1,4 +1,4 @@
-# KDMOS:Knowledge Distillation for Motion Segmentation
+# [IROS2025]KDMOS:Knowledge Distillation for Motion Segmentation
 
 
 
